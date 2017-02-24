@@ -1,0 +1,6 @@
+.DS_Store
+.ruby-version
+raw/
+plot_results/
+data/
+old_scripts/
