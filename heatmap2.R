@@ -10,6 +10,11 @@ library(tibble)
 library(scales)
 library(plotly)
 
+
+#################################### 
+############### POSTER #############
+#################################### 
+
 # ldata <- read.table("/Users/dimitras/Documents/dimitra/Workspace/Luda_plots/data/FC_Untx_plasma.txt", sep="\t", header = TRUE)
 ldata <- read.table("/Users/dimitras/Documents/dimitra/Workspace/Luda_plots/data/FC_PBS_veh_ctrl_plasma.txt", sep="\t", header = TRUE)
 
@@ -141,5 +146,219 @@ ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_plots/plot_results/eps/
 # print(p1, vp=viewport(0.8, 0.8, x=0.4, y=0.4))
 # print(p2, vp=viewport(0.52, 0.2, x=0.45, y=0.9)) # angle=180
 # print(p3, vp=viewport(0.2, 0.8, x=0.9, y=0.4))
+
+
+
+
+#################################### 
+############### PAPER ##############
+#################################### 
+
+################ FC_PBS_veh_ctrl_plasma.txt #################### 
+
+ldata <- read.table("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/data/paper/FC_PBS_veh_ctrl_plasma.txt", sep="\t", header = TRUE)
+
+ldata.for_hclust = ldata %>% 
+  column_to_rownames("measure") %>% 
+  select(LPS_Plasma.4h:LPS.Zymosan_Plasma.24h) %>%
+  as.matrix
+
+dd.col <- as.dendrogram(hclust(dist(1 - cor(ldata.for_hclust))))
+col.ord <- order.dendrogram(dd.col)
+
+dd.row <- as.dendrogram(hclust(dist(1 - cor(t(ldata.for_hclust)))))
+row.ord <- order.dendrogram(dd.row)
+
+xx_names <- attr(ldata.for_hclust, "dimnames")
+df <- as.data.frame(ldata.for_hclust)
+colnames(df) <- xx_names[[2]]
+df$measure <- xx_names[[1]]
+df$measure <- with(df, factor(measure, levels=measure, ordered=TRUE))
+
+mdf <- melt(df, id.vars="measure")
+
+#for cor clust
+ddata_y <- dendro_data(dd.row)
+ddata_x <- dendro_data(dd.col)
+
+### Set up a blank theme
+theme_none <- theme(
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  panel.background = element_blank(),
+  axis.title.x = element_text(colour=NA),
+  axis.title.y = element_blank(),
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.line = element_blank()
+)
+
+### Create plot components ###    
+factors=as.character(ddata_y$labels$label[row.ord])
+
+p1 <- mdf %>%
+  mutate(TP=gsub("^.*_(.*)","\\1",variable),
+         TP=ifelse(TP=="Plasma.4h","Plasma 4h",TP),
+         TP=ifelse(TP=="Plasma.24h","Plasma 24h",TP),
+         TP=factor(TP,levels=c("Plasma 4h", "Plasma 24h")),
+         condition=gsub("^(.*)_(.*)","\\1",variable),
+         condition = factor(condition, levels=c("LPS", "Zymosan", "LPS.Zymosan")),
+         measure = factor(measure, levels=factors),
+         logfc=log(value),
+         logfc=replace(logfc, logfc==-Inf, NA),
+         logfc=replace(logfc, logfc>11.5, 0.0)
+         # logfc=ifelse(logfc>2,2,logfc),
+         # logfc=ifelse(logfc< -2,-2,logfc)
+  ) %>% 
+  ggplot(aes(x = condition, y = measure, group=TP, fill=logfc)) +
+  geom_tile() +
+  scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-5,5), labels=c("-4","0","4"), breaks = c(-4,0,4), values=rescale(c(-5,5), from=c(-5,5))) +
+  facet_grid(.~TP, scales = "free_x", space = "free_x") +
+  theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4, size = 30, face="bold"),
+        axis.text.y = element_text(size = 30, face="bold"),
+        strip.text = element_text(size = 30, face="bold"),
+        strip.background = element_rect(fill = "dodgerblue3"),
+        legend.title = element_text(size = 30, face="bold"),
+        legend.text = element_text(size = 30, face="bold"),
+        panel.grid = element_blank(),
+        legend.position = c(.95, .05),
+        legend.background = element_rect(fill="snow"))
+
+# Dendrogram 1
+p2 <- ggplot(segment(ddata_x)) + 
+  geom_segment(aes(x=x, y=y, xend=xend, yend=yend), size=2) + 
+  labs(x = "", y = "") + 
+  theme_minimal() +
+  theme(axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        axis.text = element_blank())
+
+
+# Dendrogram 2
+p3 <- ggplot(segment(ddata_y)) + 
+  geom_segment(aes(x=x, y=y, xend=xend, yend=yend), size=2) + 
+  coord_flip() + 
+  labs(x = "", y = "") + 
+  theme_minimal() +
+  theme(axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        axis.text = element_blank())
+
+grid.newpage()
+
+combined_plot = ggdraw() +
+  draw_plot(p1, 0, 0, .85, .95) +
+  draw_plot(p2, .2, .94, .6, .05) +
+  draw_plot(p3, .83, .1, .15, .83)
+
+ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_PBS_veh_ctrl_plasma_w_dendro.pdf", combined_plot, height = 60, width = 35, units ="cm")
+
+
+
+
+##################### FC_Untx_plasma.txt #######################
+
+ldata <- read.table("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/data/paper/FC_Untx_plasma.txt", sep="\t", header = TRUE)
+
+ldata.for_hclust = ldata %>% 
+  column_to_rownames("measure") %>% 
+  select(Serum_serum:LPS.Zymosan_Plasma.24h) %>%
+  as.matrix
+
+dd.col <- as.dendrogram(hclust(dist(1 - cor(ldata.for_hclust))))
+col.ord <- order.dendrogram(dd.col)
+
+dd.row <- as.dendrogram(hclust(dist(1 - cor(t(ldata.for_hclust)))))
+row.ord <- order.dendrogram(dd.row)
+
+xx_names <- attr(ldata.for_hclust, "dimnames")
+df <- as.data.frame(ldata.for_hclust)
+colnames(df) <- xx_names[[2]]
+df$measure <- xx_names[[1]]
+df$measure <- with(df, factor(measure, levels=measure, ordered=TRUE))
+
+mdf <- melt(df, id.vars="measure")
+
+#for cor clust
+ddata_y <- dendro_data(dd.row)
+ddata_x <- dendro_data(dd.col)
+
+### Set up a blank theme
+theme_none <- theme(
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  panel.background = element_blank(),
+  axis.title.x = element_text(colour=NA),
+  axis.title.y = element_blank(),
+  axis.text.x = element_blank(),
+  axis.text.y = element_blank(),
+  axis.line = element_blank()
+)
+
+### Create plot components ###    
+factors=as.character(ddata_y$labels$label[row.ord])
+
+  p1 <- mdf %>%
+    mutate(TP=gsub("^.*_(.*)","\\1",variable),
+           TP=ifelse(TP=="serum","Serum",TP),
+           TP=ifelse(TP=="Plasma.4h","Plasma 4h",TP),
+           TP=ifelse(TP=="Plasma.24h","Plasma 24h",TP),
+           TP=factor(TP,levels=c("Serum", "Plasma 4h", "Plasma 24h")),
+           condition=gsub("^(.*)_(.*)","\\1",variable),
+           condition = factor(condition, levels=c("Serum", "PBS", "LPS", "Zymosan", "LPS.Zymosan")),
+           measure = factor(measure, levels=factors),
+           logfc=log(value),
+           logfc=replace(logfc, logfc==-Inf, NA),
+           logfc=replace(logfc, logfc>11.5, 0.0)
+           # logfc=ifelse(logfc>2.5,2.5,logfc),
+           # logfc=ifelse(logfc< -2.5,-2.5,logfc)
+    ) %>% 
+    ggplot(aes(x = condition, y = measure, group=TP, fill=logfc)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-7.5,7.5), labels=c("-4","0","4"), breaks = c(-4,0,4), values=rescale(c(-7.5,7.5), from=c(-7.5,7.5))) +
+    facet_grid(.~TP, scales = "free_x", space = "free_x") +
+    theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
+          axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4, size = 30, face="bold"),
+          axis.text.y = element_text(size = 30, face="bold"),
+          strip.text = element_text(size = 30, face="bold"),
+          strip.background = element_rect(fill = "dodgerblue3"),
+          legend.title = element_text(size = 30, face="bold"),
+          legend.text = element_text(size = 25, face="bold"),
+          panel.grid = element_blank(),
+          legend.position = c(.95, .05),
+          legend.background = element_rect(fill="snow"))
+  
+  # Dendrogram 1
+  p2 <- ggplot(segment(ddata_x)) + 
+    geom_segment(aes(x=x, y=y, xend=xend, yend=yend), size=2) + 
+    labs(x = "", y = "") + 
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          panel.grid = element_blank(),
+          axis.text = element_blank())
+  
+  
+  # Dendrogram 2
+  p3 <- ggplot(segment(ddata_y)) + 
+    geom_segment(aes(x=x, y=y, xend=xend, yend=yend), size=2) + 
+    coord_flip() + 
+    labs(x = "", y = "") + 
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          panel.grid = element_blank(),
+          axis.text = element_blank())
+  
+  grid.newpage()
+  
+  combined_plot = ggdraw() +
+    draw_plot(p1, 0, 0, .8, .91) +
+    draw_plot(p2, .13, .9, .66, .09) +
+    draw_plot(p3, .77, .09, .2, .8)
+  
+  ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_Untx_plasma_w_dendro.pdf", combined_plot, height = 60, width = 50, units ="cm")
+
+
+#########################################
 
 #https://cran.r-project.org/web/packages/ggdendro/vignettes/ggdendro.html
