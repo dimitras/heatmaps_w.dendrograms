@@ -206,19 +206,20 @@ p1 <- mdf %>%
          measure = factor(measure, levels=factors),
          logfc=log(value),
          logfc=replace(logfc, logfc==-Inf, NA),
-         logfc=replace(logfc, logfc>11.5, 0.0)
-         # logfc=ifelse(logfc>2,2,logfc),
-         # logfc=ifelse(logfc< -2,-2,logfc)
+         logfc=replace(logfc, logfc>11.5, 0.0),
+         logfc=ifelse(logfc>2,2,logfc),
+         logfc=ifelse(logfc< -2,-2,logfc)
   ) %>% 
   ggplot(aes(x = condition, y = measure, group=TP, fill=logfc)) +
   geom_tile() +
-  scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-5,5), labels=c("-4","0","4"), breaks = c(-4,0,4), values=rescale(c(-5,5), from=c(-5,5))) +
+  # scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-5,5), labels=c("-4","0","4"), breaks = c(-4,0,4), values=rescale(c(-5,5), from=c(-5,5))) +
+  scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-2,2), labels=c("<-2","0",">2"), breaks = c(-1.6,0,1.5), values=rescale(c(-2,0,2), from=c(-2,2))) +
   facet_grid(.~TP, scales = "free_x", space = "free_x") +
   theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4, size = 30, face="bold"),
         axis.text.y = element_text(size = 30, face="bold"),
         strip.text = element_text(size = 30, face="bold"),
-        strip.background = element_rect(fill = "dodgerblue3"),
+        strip.background = element_rect(fill = "dodgerblue1"),
         legend.title = element_text(size = 30, face="bold"),
         legend.text = element_text(size = 30, face="bold"),
         panel.grid = element_blank(),
@@ -310,19 +311,20 @@ factors=as.character(ddata_y$labels$label[row.ord])
            measure = factor(measure, levels=factors),
            logfc=log(value),
            logfc=replace(logfc, logfc==-Inf, NA),
-           logfc=replace(logfc, logfc>11.5, 0.0)
-           # logfc=ifelse(logfc>2.5,2.5,logfc),
-           # logfc=ifelse(logfc< -2.5,-2.5,logfc)
+           logfc=replace(logfc, logfc>11.5, 0.0),
+           logfc=ifelse(logfc>2.5,2.5,logfc),
+           logfc=ifelse(logfc< -2.5,-2.5,logfc)
     ) %>% 
     ggplot(aes(x = condition, y = measure, group=TP, fill=logfc)) +
     geom_tile() +
-    scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-7.5,7.5), labels=c("-4","0","4"), breaks = c(-4,0,4), values=rescale(c(-7.5,7.5), from=c(-7.5,7.5))) +
+    # scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-7.5,7.5), labels=c("-4","0","4"), breaks = c(-4,0,4), values=rescale(c(-7.5,7.5), from=c(-7.5,7.5))) +
+    scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-3,3), labels=c("<-2","0",">2"), breaks = c(-2,0,2), values=rescale(c(-3,0,3), from=c(-3,3))) +
     facet_grid(.~TP, scales = "free_x", space = "free_x") +
     theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
           axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4, size = 30, face="bold"),
           axis.text.y = element_text(size = 30, face="bold"),
           strip.text = element_text(size = 30, face="bold"),
-          strip.background = element_rect(fill = "dodgerblue3"),
+          strip.background = element_rect(fill = "dodgerblue1"),
           legend.title = element_text(size = 30, face="bold"),
           legend.text = element_text(size = 25, face="bold"),
           panel.grid = element_blank(),
