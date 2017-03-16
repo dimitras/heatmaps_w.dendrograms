@@ -154,6 +154,8 @@ ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_plots/plot_results/eps/
 ############### PAPER ##############
 #################################### 
 
+# First, replaced all non-significant FC values in the data tables (grey ones) with 1.0.
+
 ################ FC_PBS_veh_ctrl_plasma.txt #################### 
 
 ldata <- read.table("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/data/paper/FC_PBS_veh_ctrl_plasma.txt", sep="\t", header = TRUE)
@@ -162,6 +164,8 @@ ldata.for_hclust = ldata %>%
   column_to_rownames("measure") %>% 
   select(LPS_Plasma.4h:LPS.Zymosan_Plasma.24h) %>%
   as.matrix
+
+ldata.for_hclust[1,1]= 1.00000001 # change first value of first row to be it close to 1, because the values of the whole row are 1s, which makes the sd 0, thus the dist creates NAs and the hclust crashes.
 
 dd.col <- as.dendrogram(hclust(dist(1 - cor(ldata.for_hclust))))
 col.ord <- order.dendrogram(dd.col)
@@ -206,7 +210,6 @@ p1 <- mdf %>%
          measure = factor(measure, levels=factors),
          logfc=log(value),
          logfc=replace(logfc, logfc==-Inf, NA),
-         logfc=replace(logfc, logfc>11.5, 0.0),
          logfc=ifelse(logfc>2,2,logfc),
          logfc=ifelse(logfc< -2,-2,logfc)
   ) %>% 
@@ -218,7 +221,7 @@ p1 <- mdf %>%
   theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4, size = 30, face="bold"),
         axis.text.y = element_text(size = 30, face="bold"),
-        strip.text = element_text(size = 30, face="bold"),
+        strip.text = element_text(size = 45, face="bold"),
         strip.background = element_rect(fill = "dodgerblue1"),
         legend.title = element_text(size = 30, face="bold"),
         legend.text = element_text(size = 30, face="bold"),
@@ -311,7 +314,6 @@ factors=as.character(ddata_y$labels$label[row.ord])
            measure = factor(measure, levels=factors),
            logfc=log(value),
            logfc=replace(logfc, logfc==-Inf, NA),
-           logfc=replace(logfc, logfc>11.5, 0.0),
            logfc=ifelse(logfc>2.5,2.5,logfc),
            logfc=ifelse(logfc< -2.5,-2.5,logfc)
     ) %>% 
@@ -323,7 +325,7 @@ factors=as.character(ddata_y$labels$label[row.ord])
     theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
           axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4, size = 30, face="bold"),
           axis.text.y = element_text(size = 30, face="bold"),
-          strip.text = element_text(size = 30, face="bold"),
+          strip.text = element_text(size = 45, face="bold"),
           strip.background = element_rect(fill = "dodgerblue1"),
           legend.title = element_text(size = 30, face="bold"),
           legend.text = element_text(size = 25, face="bold"),
@@ -355,10 +357,10 @@ factors=as.character(ddata_y$labels$label[row.ord])
   
   combined_plot = ggdraw() +
     draw_plot(p1, 0, 0, .8, .91) +
-    draw_plot(p2, .13, .9, .66, .09) +
-    draw_plot(p3, .77, .09, .2, .8)
+    draw_plot(p2, .09, .9, .7, .09) +
+    draw_plot(p3, .78, .09, .2, .8)
   
-  ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_Untx_plasma_w_dendro.pdf", combined_plot, height = 60, width = 50, units ="cm")
+  ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_Untx_plasma_w_dendro.pdf", combined_plot, height = 60, width = 70, units ="cm")
 
 
 #########################################
