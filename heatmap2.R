@@ -206,28 +206,33 @@ p1 <- mdf %>%
          TP=ifelse(TP=="Plasma.24h","Plasma 24h",TP),
          TP=factor(TP,levels=c("Plasma 4h", "Plasma 24h")),
          condition=gsub("^(.*)_(.*)","\\1",variable),
-         condition = factor(condition, levels=c("LPS", "Zymosan", "LPS.Zymosan")),
+         condition=ifelse(condition=="Zymosan","Zym",condition),
+         condition=ifelse(condition=="LPS.Zymosan","LPS+Zym",condition),
+         condition = factor(condition, levels=c("LPS", "Zym", "LPS+Zym")),
          measure = factor(measure, levels=factors),
          logfc=log(value),
-         logfc=replace(logfc, logfc==-Inf, NA),
-         logfc=ifelse(logfc>2,2,logfc),
-         logfc=ifelse(logfc< -2,-2,logfc)
+         logfc=replace(logfc, logfc==-Inf, NA)
+         # logfc=ifelse(logfc>2,2,logfc),
+         # logfc=ifelse(logfc< -2,-2,logfc)
   ) %>% 
   ggplot(aes(x = condition, y = measure, group=TP, fill=logfc)) +
   geom_tile() +
-  # scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-5,5), labels=c("-4","0","4"), breaks = c(-4,0,4), values=rescale(c(-5,5), from=c(-5,5))) +
-  scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-2,2), labels=c("<-2","0",">2"), breaks = c(-1.6,0,1.5), values=rescale(c(-2,0,2), from=c(-2,2))) +
+  # scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-2,2), labels=c("<-2","0",">2"), breaks = c(-1.6,0,1.5), values=rescale(c(-2,0,2), from=c(-2,2))) +
+  scale_fill_gradientn(colours = c("royalblue4", "royalblue","royalblue3", "royalblue2", "royalblue1", "grey90", "firebrick1", "firebrick2", "firebrick3", "firebrick", "firebrick4"), na.value = "white", limits=c(-5,5), labels=c("-4","-2", "0","2","4"), breaks = c(-4,-2,0,2,4), values=rescale(c(-5,-4,-3,-2,-1,0,1,2,3,4,5), from=c(-5,5))) +
   facet_grid(.~TP, scales = "free_x", space = "free_x") +
   theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
-        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4, size = 30, face="bold"),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, size = 30, face="bold"),
         axis.text.y = element_text(size = 30, face="bold"),
-        strip.text = element_text(size = 45, face="bold"),
-        strip.background = element_rect(fill = "dodgerblue1"),
-        legend.title = element_text(size = 30, face="bold"),
+        strip.text = element_text(size = 45, face="bold", color = "white"),
+        strip.background = element_rect(fill = "dodgerblue4"),
+        legend.title.align = 0.5,
+        legend.title = element_text(size = 35, face="bold"),
         legend.text = element_text(size = 30, face="bold"),
-        panel.grid = element_blank(),
-        legend.position = c(.95, .05),
-        legend.background = element_rect(fill="snow"))
+        legend.key.height = unit(3,"line"),
+        legend.key.width = unit(2,"line"),
+        legend.position = c(.94, .1),
+        legend.background = element_rect(fill="mintcream"),
+        panel.grid = element_blank())
 
 # Dendrogram 1
 p2 <- ggplot(segment(ddata_x)) + 
@@ -254,9 +259,9 @@ grid.newpage()
 combined_plot = ggdraw() +
   draw_plot(p1, 0, 0, .85, .95) +
   draw_plot(p2, .2, .94, .6, .05) +
-  draw_plot(p3, .83, .1, .15, .83)
+  draw_plot(p3, .83, 0, .15, .92)
 
-ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_PBS_veh_ctrl_plasma_w_dendro.pdf", combined_plot, height = 60, width = 35, units ="cm")
+ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_PBS_veh_ctrl_plasma_w_dendro.pdf", combined_plot, height = 60, width = 40, units ="cm")
 
 
 
@@ -310,28 +315,33 @@ factors=as.character(ddata_y$labels$label[row.ord])
            TP=ifelse(TP=="Plasma.24h","Plasma 24h",TP),
            TP=factor(TP,levels=c("Serum", "Plasma 4h", "Plasma 24h")),
            condition=gsub("^(.*)_(.*)","\\1",variable),
-           condition = factor(condition, levels=c("Serum", "PBS", "LPS", "Zymosan", "LPS.Zymosan")),
+           condition=ifelse(condition=="Zymosan","Zym",condition),
+           condition=ifelse(condition=="LPS.Zymosan","LPS+Zym",condition),
+           condition = factor(condition, levels=c("Serum", "PBS", "LPS", "Zym", "LPS+Zym")),
            measure = factor(measure, levels=factors),
            logfc=log(value),
-           logfc=replace(logfc, logfc==-Inf, NA),
-           logfc=ifelse(logfc>2.5,2.5,logfc),
-           logfc=ifelse(logfc< -2.5,-2.5,logfc)
+           logfc=replace(logfc, logfc==-Inf, NA)
+           # logfc=ifelse(logfc>2.5,2.5,logfc),
+           # logfc=ifelse(logfc< -2.5,-2.5,logfc)
     ) %>% 
     ggplot(aes(x = condition, y = measure, group=TP, fill=logfc)) +
     geom_tile() +
-    # scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-7.5,7.5), labels=c("-4","0","4"), breaks = c(-4,0,4), values=rescale(c(-7.5,7.5), from=c(-7.5,7.5))) +
-    scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-3,3), labels=c("<-2","0",">2"), breaks = c(-2,0,2), values=rescale(c(-3,0,3), from=c(-3,3))) +
+    # scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-3,3), labels=c("<-2","0",">2"), breaks = c(-2,0,2), values=rescale(c(-3,0,3), from=c(-3,3))) +
+    scale_fill_gradientn(colours = c("royalblue4", "royalblue","royalblue3", "royalblue2", "royalblue1", "grey90", "firebrick1", "firebrick2", "firebrick3", "firebrick", "firebrick4"), na.value = "white", limits=c(-7.5,7.5), labels=c("-5","-2","0","2","5"), breaks = c(-5,-2,0,2,5), values=rescale(c(-7.5,-5,-3,-2,-1,0,1,2,3,5,7.5), from=c(-7.5,7.5))) +
     facet_grid(.~TP, scales = "free_x", space = "free_x") +
     theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
-          axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.4, size = 30, face="bold"),
+          axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, size = 30, face="bold"),
           axis.text.y = element_text(size = 30, face="bold"),
-          strip.text = element_text(size = 45, face="bold"),
-          strip.background = element_rect(fill = "dodgerblue1"),
-          legend.title = element_text(size = 30, face="bold"),
-          legend.text = element_text(size = 25, face="bold"),
-          panel.grid = element_blank(),
-          legend.position = c(.95, .05),
-          legend.background = element_rect(fill="snow"))
+          strip.text = element_text(size = 45, face="bold", color = "white"),
+          strip.background = element_rect(fill = "dodgerblue4"),
+          legend.title.align = 0.5,
+          legend.title = element_text(size = 35, face="bold"),
+          legend.text = element_text(size = 30, face="bold"),
+          legend.key.height = unit(3,"line"),
+          legend.key.width = unit(3,"line"),
+          legend.position = c(.95, .1),
+          legend.background = element_rect(fill="mintcream"),
+          panel.grid = element_blank())
   
   # Dendrogram 1
   p2 <- ggplot(segment(ddata_x)) + 
@@ -358,10 +368,9 @@ factors=as.character(ddata_y$labels$label[row.ord])
   combined_plot = ggdraw() +
     draw_plot(p1, 0, 0, .8, .91) +
     draw_plot(p2, .09, .9, .7, .09) +
-    draw_plot(p3, .78, .09, .2, .8)
+    draw_plot(p3, .78, 0, .2, .88)
   
   ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_Untx_plasma_w_dendro.pdf", combined_plot, height = 60, width = 70, units ="cm")
-
 
 #########################################
 
