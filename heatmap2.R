@@ -219,7 +219,8 @@ p1 <- mdf %>%
   geom_tile(aes(width=0.99, height=0.99)) +
   # geom_text(aes(label=round(logfc,1)), size=10) +
   # scale_fill_gradientn(colours = c("royalblue4", "grey90", "firebrick4"), na.value = "white", limits=c(-2,2), labels=c("<-2","0",">2"), breaks = c(-1.6,0,1.5), values=rescale(c(-2,0,2), from=c(-2,2))) +
-  scale_fill_gradientn(colours = c("royalblue4", "royalblue","royalblue3", "royalblue2", "royalblue1", "grey90", "firebrick1", "firebrick2", "firebrick3", "firebrick", "firebrick4"), na.value = "white", limits=c(-5,5), labels=c("-4","-2", "0","2","4"), breaks = c(-4,-2,0,2,4), values=rescale(c(-5,-4,-3,-2,-1,0,1,2,3,4,5), from=c(-5,5))) +
+  scale_fill_gradientn(colours = c("royalblue4", "royalblue","royalblue3", "royalblue2", "royalblue1", "grey90", "firebrick1", "firebrick2", "firebrick3", "firebrick", "firebrick4"), na.value = "white", limits=c(-5,5), labels=c("-4","-2", "0","2","4"), breaks = c(-4,-2,0,2,4)) +
+  # scale_fill_gradientn(colours = c("royalblue4", "royalblue","royalblue3", "royalblue2", "royalblue1", "grey90", "firebrick1", "firebrick2", "firebrick3", "firebrick", "firebrick4"), na.value = "white", limits=c(-5,5), labels=c("-4","-2", "0","2","4"), breaks = c(-4,-2,0,2,4), values=rescale(c(-5,-4,-3,-2,-1,0,1,2,3,4,5), from=c(-5,5))) + # rescale doesn't change sth in this case
   facet_grid(.~TP, scales = "free_x", space = "free_x") +
   theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
         axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, size = 30, face="bold"),
@@ -262,7 +263,7 @@ combined_plot = ggdraw() +
   draw_plot(p2, .2, .94, .6, .05) +
   draw_plot(p3, .83, 0, .15, .92)
 
-ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_PBS_veh_ctrl_plasma_w_dendro.pdf", combined_plot, height = 60, width = 40, units ="cm")
+ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_PBS_veh_ctrl_plasma_w_dendro-.pdf", combined_plot, height = 60, width = 40, units ="cm")
 
 
 
@@ -374,6 +375,90 @@ factors=as.character(ddata_y$labels$label[row.ord])
   
   ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_Untx_plasma_w_dendro.pdf", combined_plot, height = 60, width = 70, units ="cm")
 
+  
+  
+
+  ##################### FC_Untx_plasma.txt --SERUM ONLY-- #######################
+  
+  ldata <- read.table("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/data/paper/FC_Untx_plasma-Serum.txt", sep="\t", header = TRUE)
+  
+  ldata.for_hclust = ldata %>% 
+    column_to_rownames("measure") %>% 
+    as.matrix
+  
+  dd.row <- as.dendrogram(hclust(dist(1 - cor(t(ldata.for_hclust)))))
+  row.ord <- order.dendrogram(dd.row)
+  
+  xx_names <- attr(ldata.for_hclust, "dimnames")
+  df <- as.data.frame(ldata.for_hclust)
+  colnames(df) <- xx_names[[2]]
+  df$measure <- xx_names[[1]]
+  df$measure <- with(df, factor(measure, levels=measure, ordered=TRUE))
+  
+  mdf <- melt(df, id.vars="measure")
+  
+  #for cor clust
+  ddata_y <- dendro_data(dd.row)
+  
+  ### Set up a blank theme
+  theme_none <- theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    axis.title.x = element_text(colour=NA),
+    axis.title.y = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.line = element_blank()
+  )
+  
+  ### Create plot components ###    
+  factors=as.character(ddata_y$labels$label[row.ord])
+  
+  p1 <- mdf %>%
+    mutate(condition=gsub("^(Serum)_([[:digit:]]+)","\\1",variable),
+           condition = factor(condition, levels=c("Serum")),
+           measure = factor(measure, levels=factors),
+           logfc=log(value),
+           logfc=replace(logfc, logfc==-Inf, NA)
+    ) %>% 
+    ggplot(aes(x = condition, y = measure, fill=logfc)) +
+    geom_tile() +
+    scale_fill_gradientn(colours = c("royalblue4", "royalblue","royalblue3", "royalblue2", "royalblue1", "grey90", "firebrick1", "firebrick2", "firebrick3", "firebrick", "firebrick4"), na.value = "white", limits=c(-7.5,7.5), labels=c("-6","-4","-2","0","2","4","6"), breaks = c(-6,-4,-2,0,2,4,6), values=rescale(c(-7.5,-5,-3,-2,-1,0,1,2,3,5,7.5), from=c(-7.5,7.5))) +
+    theme(axis.title.x = element_blank(),axis.title.y = element_blank(),
+          axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, size = 30, face="bold"),
+          axis.text.y = element_text(size = 30, face="bold"),
+          strip.text = element_text(size = 45, face="bold", color = "white"),
+          strip.background = element_rect(fill = "dodgerblue4"),
+          legend.title.align = 0.5,
+          legend.title = element_text(size = 35, face="bold"),
+          legend.text = element_text(size = 30, face="bold"),
+          legend.key.height = unit(3,"line"),
+          legend.key.width = unit(3,"line"),
+          legend.position = c(.95, .1),
+          legend.background = element_rect(fill="mintcream"),
+          panel.grid = element_blank())
+  
+  # Dendrogram
+  p3 <- ggplot(segment(ddata_y)) + 
+    geom_segment(aes(x=x, y=y, xend=xend, yend=yend), size=2) + 
+    coord_flip() + 
+    labs(x = "", y = "") + 
+    theme_minimal() +
+    theme(axis.ticks = element_blank(),
+          panel.grid = element_blank(),
+          axis.text = element_blank())
+  
+  grid.newpage()
+  
+  combined_plot = ggdraw() +
+    draw_plot(p1, 0, 0, .15, 1) +
+    draw_plot(p3, .11, 0, .85, 1)
+  
+  ggsave("/Users/dimitras/Documents/dimitra/Workspace/Luda_heatmaps4poster/plot_results/pdf/FC_Untx_plasma-Serum_w_dendro.pdf", combined_plot, height = 50, width = 80, units ="cm")
+  
+  
+  
 #########################################
 
 #https://cran.r-project.org/web/packages/ggdendro/vignettes/ggdendro.html
