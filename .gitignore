@@ -1,4 +1,5 @@
 .DS_Store
+.Rhistory
 .ruby-version
 raw/
 plot_results/
